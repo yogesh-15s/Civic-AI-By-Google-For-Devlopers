@@ -9,6 +9,11 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Root route for health check
+app.get('/', (req, res) => {
+  res.send('CivicAI Backend is running!');
+});
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 const SYSTEM_PROMPT = `You are CivicAI, a smart, friendly, and politically neutral election assistant for Indian citizens.
