@@ -6,7 +6,7 @@ import { useTheme } from './ThemeProvider';
 import { useState } from 'react';
 import {
   LayoutDashboard, MessageCircle, Play, User, Vote,
-  Sun, Moon, Menu, X, BookOpen, Map, HelpCircle, Trophy, LogOut
+  Sun, Moon, Menu, X, BookOpen, Map, Trophy, LogOut
 } from 'lucide-react';
 
 const navItems = [
@@ -27,7 +27,6 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = async () => {
-    localStorage.removeItem('civicai-user');
     await signOut({ redirect: false });
     router.push('/');
     setMenuOpen(false);
@@ -38,20 +37,17 @@ export default function Navbar() {
 
   return (
     <nav className="navbar" style={{ flexDirection: 'column', display: 'flex' }}>
-      {/* Top Status Bar */}
       <div style={{ background: 'linear-gradient(90deg, #1e3a8a, #4c1d95)', color: '#e2e8f0', fontSize: '13px', fontWeight: 500, textAlign: 'center', padding: '6px 24px', width: '100%' }}>
-        <span style={{ opacity: 0.9 }}>📞 Election Commission of India Voter Helpline:</span> <strong style={{ color: 'white', letterSpacing: '1px' }}>1950</strong> <span style={{ opacity: 0.7, fontSize: '11px', marginLeft: '4px' }}>(Toll Free)</span>
+        <span style={{ opacity: 0.9 }}>Election Commission of India Voter Helpline:</span> <strong style={{ color: 'white', letterSpacing: '1px' }}>1950</strong> <span style={{ opacity: 0.7, fontSize: '11px', marginLeft: '4px' }}>(Toll Free)</span>
       </div>
       <div style={{ width: '100%', maxWidth: '1600px', margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '64px' }}>
-          {/* Logo */}
           <Link href="/dashboard" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontFamily: 'Righteous, sans-serif', fontWeight: 400, fontSize: '26px', letterSpacing: '1px' }} className="gradient-text">
               CivicAI
             </span>
           </Link>
 
-          {/* Desktop Nav */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }} className="hidden-mobile">
             {navItems.map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href} className={`nav-link ${pathname === href ? 'active' : ''}`}>
@@ -61,7 +57,6 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Right controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button
               onClick={toggleTheme}
@@ -81,7 +76,7 @@ export default function Navbar() {
             </button>
 
             <button
-              onClick={handleLogout}
+              onClick={() => void handleLogout()}
               style={{
                 background: 'var(--bg-card)',
                 border: '1px solid var(--border-color)',
@@ -116,7 +111,6 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
         {menuOpen && (
           <div style={{
             padding: '16px 0',
@@ -137,7 +131,7 @@ export default function Navbar() {
               </Link>
             ))}
             <button
-              onClick={handleLogout}
+              onClick={() => void handleLogout()}
               className="nav-link"
               style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', color: 'var(--accent-danger)' }}
             >

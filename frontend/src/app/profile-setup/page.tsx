@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { User, MapPin, CheckCircle, ChevronRight, ChevronLeft, Calendar } from 'lucide-react';
 
 const INDIAN_STATES = [
@@ -15,8 +16,11 @@ const steps = ['Personal Info', 'Location', 'Voter Status', 'Review'];
 
 export default function ProfileSetupPage() {
   const router = useRouter();
+  const { status } = useSession();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [error, setError] = useState('');
   const [profile, setProfile] = useState({
     age: '',
     state: '',
@@ -25,21 +29,40 @@ export default function ProfileSetupPage() {
   });
 
   useEffect(() => {
-    const stored = localStorage.getItem('civicai-user');
-    if (stored) {
-      const user = JSON.parse(stored);
-      setProfile(prev => ({
-        ...prev,
-        age: user.age || '',
-        state: user.state || '',
-        city: user.city || '',
-        firstTimeVoter: user.firstTimeVoter || '',
-      }));
-      if (user.age && user.state && user.city && user.firstTimeVoter) {
-        setStep(3); // Go to review step directly
-      }
+    if (status === 'unauthenticated') {
+      router.push('/auth');
+      return;
     }
-  }, []);
+
+    if (status !== 'authenticated') {
+      return;
+    }
+
+    const loadProfile = async () => {
+      try {
+        const res = await fetch('/api/me');
+        const data = await res.json();
+
+        if (res.ok) {
+          const user = data.user;
+          setProfile({
+            age: user.age || '',
+            state: user.state || '',
+            city: user.city || '',
+            firstTimeVoter: user.firstTimeVoter || '',
+          });
+
+          if (user.age && user.state && user.city && user.firstTimeVoter) {
+            setStep(3);
+          }
+        }
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+
+    loadProfile();
+  }, [router, status]);
 
   const update = (field: keyof typeof profile, value: string) =>
     setProfile(prev => ({ ...prev, [field]: value }));
@@ -53,14 +76,39 @@ export default function ProfileSetupPage() {
 
   const handleSave = async () => {
     setSaving(true);
-    const stored = localStorage.getItem('civicai-user');
-    const user = stored ? JSON.parse(stored) : {};
-    localStorage.setItem('civicai-user', JSON.stringify({ ...user, ...profile }));
-    await new Promise(r => setTimeout(r, 1000));
-    router.push('/dashboard');
+    setError('');
+
+    try {
+      const res = await fetch('/api/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profile),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || 'Could not save your profile.');
+        return;
+      }
+
+      router.push('/dashboard');
+    } catch {
+      setError('Could not save your profile.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const progress = ((step + 1) / steps.length) * 100;
+
+  if (status === 'loading' || (status === 'authenticated' && loadingProfile)) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
+        <p style={{ color: 'var(--text-secondary)' }}>Loading your profile...</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -120,6 +168,20 @@ export default function ProfileSetupPage() {
 
         {/* Card */}
         <div className="card" style={{ padding: '36px' }}>
+          {error && (
+            <div style={{
+              border: '1px solid rgba(239,68,68,0.35)',
+              background: 'rgba(239,68,68,0.08)',
+              color: '#fca5a5',
+              borderRadius: '12px',
+              padding: '12px 14px',
+              fontSize: '13px',
+              marginBottom: '20px'
+            }}>
+              {error}
+            </div>
+          )}
+
           {/* Step 0: Personal Info */}
           {step === 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

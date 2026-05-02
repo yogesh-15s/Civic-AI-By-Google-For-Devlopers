@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import {
   MessageCircle, Play, Vote, Trophy, BookOpen, Map,
   CheckCircle, Clock, AlertCircle, ChevronRight, User, Sparkles
@@ -34,22 +36,54 @@ const quickCards = [
 ];
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<UserProfile>({});
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const [completedSteps] = useState(2);
   const progress = Math.round((completedSteps / roadmapSteps.length) * 100);
 
   useEffect(() => {
-    const stored = localStorage.getItem('civicai-user');
-    if (stored) setUser(JSON.parse(stored));
-  }, []);
+    if (status === 'unauthenticated') {
+      router.push('/auth');
+      return;
+    }
 
-  const displayName = user.name || 'Voter';
+    if (status !== 'authenticated') {
+      return;
+    }
+
+    const loadProfile = async () => {
+      try {
+        const res = await fetch('/api/me');
+        const data = await res.json();
+
+        if (res.ok) {
+          setUser(data.user);
+        }
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+
+    loadProfile();
+  }, [router, status]);
+
+  const displayName = user.name || session?.user?.name || 'Voter';
   const greeting = () => {
     const h = new Date().getHours();
     if (h < 12) return 'Good morning';
     if (h < 17) return 'Good afternoon';
     return 'Good evening';
   };
+
+  if (status === 'loading' || (status === 'authenticated' && loadingProfile)) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', paddingTop: '110px' }}>
+        <p style={{ color: 'var(--text-secondary)' }}>Loading your dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', padding: '110px 24px 60px' }}>

@@ -17,6 +17,7 @@ interface Errors {
   name?: string;
   email?: string;
   password?: string;
+  form?: string;
 }
 
 export default function AuthPage() {
@@ -30,15 +31,10 @@ export default function AuthPage() {
   const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (status !== 'authenticated' || success) return;
-
-    localStorage.setItem('civicai-user', JSON.stringify({
-      name: session.user?.name,
-      email: session.user?.email,
-      image: session.user?.image
-    }));
-    router.push('/dashboard');
-  }, [router, session, status, success]);
+    if (status === 'authenticated') {
+      router.push('/dashboard');
+    }
+  }, [router, status]);
 
   const validate = (): boolean => {
     const e: Errors = {};
@@ -53,18 +49,60 @@ export default function AuthPage() {
     e.preventDefault();
     if (!validate()) return;
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1200));
-    if (mode === 'signup') {
-      localStorage.setItem('civicai-user', JSON.stringify({ name: form.name, email: form.email }));
+    setErrors({});
+
+    try {
+      if (mode === 'signup') {
+        const registerRes = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: form.name,
+            email: form.email,
+            password: form.password,
+          }),
+        });
+
+        const registerData = await registerRes.json();
+
+        if (!registerRes.ok) {
+          setErrors({ form: registerData.message || 'Unable to create your account.' });
+          return;
+        }
+      }
+
+      const result = await signIn('credentials', {
+        email: form.email,
+        password: form.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setErrors({ form: mode === 'login' ? 'Invalid email or password.' : 'Account created, but sign-in failed. Please try logging in.' });
+        return;
+      }
+
+      setSuccess(true);
+      setTimeout(() => router.push('/dashboard'), 800);
+    } catch {
+      setErrors({ form: 'Something went wrong. Please try again.' });
+    } finally {
+      setLoading(false);
     }
-    setSuccess(true);
-    setTimeout(() => router.push('/dashboard'), 1000);
   };
 
   const updateField = (field: keyof FormData, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }));
   };
+
+  if (status === 'loading') {
+    return (
+      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
+        <p style={{ color: 'var(--text-secondary)' }}>Checking your session...</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -143,6 +181,19 @@ export default function AuthPage() {
               </div>
 
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                {errors.form && (
+                  <div style={{
+                    border: '1px solid rgba(239,68,68,0.35)',
+                    background: 'rgba(239,68,68,0.08)',
+                    color: '#fca5a5',
+                    borderRadius: '12px',
+                    padding: '12px 14px',
+                    fontSize: '13px'
+                  }}>
+                    {errors.form}
+                  </div>
+                )}
+
                 {/* Name (signup only) */}
                 {mode === 'signup' && (
                   <div>
@@ -244,7 +295,7 @@ export default function AuthPage() {
 
               {/* Google Button */}
               <button
-                onClick={() => signIn('google')}
+                onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
                 className="btn-secondary"
                 style={{
                   width: '100%',
