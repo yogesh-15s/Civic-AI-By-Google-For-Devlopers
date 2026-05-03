@@ -2,6 +2,25 @@
 
 CivicAI is a civic education and election-assistance project built for Indian citizens. It combines a modern Next.js frontend with a lightweight Express backend and a Gemini-powered chat assistant.
 
+DEMO Images: 
+
+<img width="1897" height="1033" alt="Screenshot 2026-05-03 125323" src="https://github.com/user-attachments/assets/a75fc78b-e923-4c33-84a3-06869b4437d5" />
+
+
+<img width="1908" height="1026" alt="Screenshot 2026-05-03 125336" src="https://github.com/user-attachments/assets/4f996db0-aa78-435e-8b64-86fa712930b3" />
+
+
+
+<img width="1903" height="976" alt="Screenshot 2026-05-03 125356" src="https://github.com/user-attachments/assets/c9578c6e-4c24-424f-80b1-47da8967c26a" />
+
+
+
+<img width="1896" height="1023" alt="Screenshot 2026-05-03 125411" src="https://github.com/user-attachments/assets/7c95a1d6-1350-4763-825e-bae6a40ad451" />
+
+
+
+
+
 ## Tech Stack
 
 ### Frontend
