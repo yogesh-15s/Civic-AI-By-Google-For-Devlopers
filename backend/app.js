@@ -182,7 +182,7 @@ Always end with an encouraging note about civic participation.`;
         return res.status(422).json({ message: "I cannot respond to that request. Please ask about election-related topics." });
       }
 
-      res.status(500).json({ message: "The AI service is temporarily unavailable. Please try again." });
+      res.status(500).json({ message: "AI service error", detail: error?.message || error });
     }
   });
 
