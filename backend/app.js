@@ -117,7 +117,7 @@ Always end with an encouraging note about civic participation.`;
 
   // Health check
   app.get('/', (req, res) => {
-    res.json({ status: 'ok', service: 'CivicAI Backend', version: '1.0.4-debug', poweredBy: 'Google Gemini' });
+    res.json({ status: 'ok', service: 'CivicAI Backend', poweredBy: 'Google Gemini' });
   });
 
   // Chat endpoint — uses Google Gemini with safety settings
@@ -146,7 +146,7 @@ Always end with an encouraging note about civic participation.`;
 
       // Google Gemini — using gemini-1.5-flash with safety settings
       const model = genAI.getGenerativeModel({
-        model: 'gemini-1.5-flash-latest',
+        model: 'gemini-2.0-flash',
         systemInstruction: `${SYSTEM_PROMPT}\n\n${langInstruction}`,
         safetySettings,
         generationConfig: {
@@ -154,7 +154,7 @@ Always end with an encouraging note about civic participation.`;
           temperature: 0.7,
           topP: 0.95,
           topK: 40,
-        }
+          }
       });
 
       const formattedHistory = messages.map((msg) => ({
@@ -172,7 +172,7 @@ Always end with an encouraging note about civic participation.`;
       const result = await chat.sendMessage(lastMessage.parts[0].text);
       const text = result.response.text();
 
-      return res.json({ message: text, model: 'gemini-1.5-flash', poweredBy: 'Google AI' });
+      return res.json({ message: text, model: 'gemini-2.0-flash', poweredBy: 'Google AI' });
 
     } catch (error) {
       // Don't leak internal error details
@@ -182,7 +182,7 @@ Always end with an encouraging note about civic participation.`;
         return res.status(422).json({ message: "I cannot respond to that request. Please ask about election-related topics." });
       }
 
-      res.status(500).json({ message: "AI service error", detail: error?.message || error });
+      res.status(500).json({ message: "The AI service is temporarily unavailable. Please try again." });
     }
   });
 
