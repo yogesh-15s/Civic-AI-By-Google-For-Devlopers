@@ -117,7 +117,7 @@ Always end with an encouraging note about civic participation.`;
 
   // Health check
   app.get('/', (req, res) => {
-    res.json({ status: 'ok', service: 'CivicAI Backend', poweredBy: 'Google Gemini' });
+    res.json({ status: 'ok', service: 'CivicAI Backend', version: '1.0.4-debug', poweredBy: 'Google Gemini' });
   });
 
   // Chat endpoint — uses Google Gemini with safety settings
