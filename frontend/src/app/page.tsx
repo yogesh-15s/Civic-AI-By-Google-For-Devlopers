@@ -1,7 +1,7 @@
 // Landing page is a Server Component — no 'use client' needed
 // This improves FCP, LCP, and reduces JS bundle size
 import Link from 'next/link';
-import { ArrowRight, MessageCircle, Map, Play, CheckCircle, ChevronRight, Vote, Shield, Zap, Globe } from 'lucide-react';
+import { ArrowRight, MessageCircle, Map, Play, CheckCircle, ChevronRight } from 'lucide-react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {

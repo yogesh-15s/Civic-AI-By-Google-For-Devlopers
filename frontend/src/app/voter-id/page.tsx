@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { ExternalLink, CheckCircle, Clock, ChevronRight } from 'lucide-react';
+import { ExternalLink, CheckCircle } from 'lucide-react';
 
 type TabKey = 'new' | 'correction' | 'track';
 

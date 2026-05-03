@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { CheckCircle, ChevronRight, RotateCcw, Vote, Shield, Eye, Hand, Star } from 'lucide-react';
+import { CheckCircle, ChevronRight, RotateCcw, Vote, Shield, Eye, Star } from 'lucide-react';
 
 const STEPS = [
   {

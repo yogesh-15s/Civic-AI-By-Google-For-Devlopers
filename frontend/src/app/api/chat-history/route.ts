@@ -59,7 +59,7 @@ export async function PUT(request: Request) {
   const validation = ChatBodySchema.safeParse(body);
 
   if (!validation.success) {
-    return NextResponse.json({ message: "Invalid request body", errors: validation.error.errors }, { status: 400 });
+    return NextResponse.json({ message: "Invalid request body", errors: validation.error.issues }, { status: 400 });
   }
 
   const { messages, language } = validation.data;

@@ -88,7 +88,7 @@ export default function QuizPage() {
 
   const q = QUESTIONS[current];
   const score = answers.filter((a, i) => a === QUESTIONS[i].answer).length;
-  const badge = BADGES.find(b => score >= b.min && score <= b.max)!;
+
 
   const handleSelect = (idx: number) => {
     if (selected !== null) return;
