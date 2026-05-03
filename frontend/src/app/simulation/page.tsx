@@ -171,7 +171,15 @@ export default function SimulationPage() {
         </div>
 
         {/* Progress */}
-        <div className="progress-bar" style={{ marginBottom: '36px' }}>
+        <div 
+          className="progress-bar" 
+          style={{ marginBottom: '36px' }}
+          role="progressbar"
+          aria-valuenow={progress}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Simulation progress"
+        >
           <div className="progress-fill" style={{ width: `${progress}%` }} />
         </div>
 

@@ -234,43 +234,52 @@ export default function QuizPage() {
             </span>
           </div>
 
-          <h2 style={{ fontSize: 'clamp(17px, 2.5vw, 21px)', fontWeight: 700, lineHeight: 1.5, marginBottom: '28px' }}>
-            {q.q}
-          </h2>
+          <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
+            <legend className="sr-only">Question {current + 1}</legend>
+            <h2 style={{ fontSize: 'clamp(17px, 2.5vw, 21px)', fontWeight: 700, lineHeight: 1.5, marginBottom: '28px' }}>
+              {q.q}
+            </h2>
 
-          {/* Options */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {q.options.map((opt, idx) => {
-              let optClass = 'quiz-option';
-              if (selected !== null) {
-                if (idx === q.answer) optClass += ' correct';
-                else if (idx === selected && selected !== q.answer) optClass += ' wrong';
-              } else if (selected === idx) {
-                optClass += ' selected';
-              }
-              return (
-                <button
-                  key={idx}
-                  id={`quiz-opt-${idx}`}
-                  className={optClass}
-                  onClick={() => handleSelect(idx)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '12px' }}
-                >
-                  <span style={{
-                    width: '28px', height: '28px', borderRadius: '8px', flexShrink: 0,
-                    background: selected !== null
-                      ? idx === q.answer ? '#10b981' : idx === selected ? '#ef4444' : 'var(--bg-secondary)'
-                      : 'var(--bg-secondary)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '13px', fontWeight: 700, color: selected !== null && (idx === q.answer || idx === selected) ? 'white' : 'var(--text-muted)'
-                  }}>
-                    {selected !== null && idx === q.answer ? '✓' : selected !== null && idx === selected ? '✗' : String.fromCharCode(65 + idx)}
-                  </span>
-                  {opt}
-                </button>
-              );
-            })}
-          </div>
+            {/* Options */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {q.options.map((opt, idx) => {
+                let optClass = 'quiz-option';
+                if (selected !== null) {
+                  if (idx === q.answer) optClass += ' correct';
+                  else if (idx === selected && selected !== q.answer) optClass += ' wrong';
+                } else if (selected === idx) {
+                  optClass += ' selected';
+                }
+                return (
+                  <label
+                    key={idx}
+                    className={optClass}
+                    style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: selected === null ? 'pointer' : 'default' }}
+                  >
+                    <input
+                      type="radio"
+                      name="quiz-option"
+                      className="sr-only"
+                      checked={selected === idx}
+                      onChange={() => handleSelect(idx)}
+                      disabled={selected !== null}
+                    />
+                    <span style={{
+                      width: '28px', height: '28px', borderRadius: '8px', flexShrink: 0,
+                      background: selected !== null
+                        ? idx === q.answer ? '#10b981' : idx === selected ? '#ef4444' : 'var(--bg-secondary)'
+                        : 'var(--bg-secondary)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '13px', fontWeight: 700, color: selected !== null && (idx === q.answer || idx === selected) ? 'white' : 'var(--text-muted)'
+                    }}>
+                      {selected !== null && idx === q.answer ? '✓' : selected !== null && idx === selected ? '✗' : String.fromCharCode(65 + idx)}
+                    </span>
+                    {opt}
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
 
           {/* Explanation */}
           {showExplanation && (

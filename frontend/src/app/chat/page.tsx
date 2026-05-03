@@ -118,7 +118,7 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${getBackendUrl()}/api/chat`, {
+      const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -220,7 +220,7 @@ export default function ChatPage() {
         )}
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '40px 24px 150px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div aria-live="polite" style={{ flex: 1, overflowY: 'auto', padding: '40px 24px 150px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <div style={{ width: '100%', maxWidth: '800px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
           {messages.length === 0 && (
             <div style={{ textAlign: 'center', marginTop: '10vh' }}>
@@ -289,6 +289,7 @@ export default function ChatPage() {
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, padding: '20px 24px 30px', background: 'var(--bg-primary)', zIndex: 10 }}>
         <div style={{ width: '100%', maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', background: 'var(--bg-secondary)', borderRadius: '24px', padding: '8px 16px', border: '1px solid var(--border-color)' }}>
+            <label htmlFor="chat-input" className="sr-only">Ask Civic AI</label>
             <textarea
               ref={inputRef}
               id="chat-input"
@@ -305,6 +306,7 @@ export default function ChatPage() {
             />
             <button
               id="chat-send"
+              aria-label="Send message"
               onClick={() => void sendMessage()}
               disabled={!input.trim() || loading}
               style={{

@@ -7,8 +7,8 @@ import SessionWrapper from "@/components/SessionWrapper";
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
 };
+
 
 export const metadata: Metadata = {
   title: "CivicAI – Smart Election Assistant",
@@ -25,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <meta charSet="utf-8" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
@@ -32,8 +33,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <SessionWrapper>
           <ThemeProvider>
+            <a href="#main-content" className="skip-link">Skip to main content</a>
             <Navbar />
-            <main>{children}</main>
+            <main id="main-content">{children}</main>
           </ThemeProvider>
         </SessionWrapper>
       </body>

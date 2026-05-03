@@ -29,34 +29,28 @@ export async function POST(request: Request) {
   const db = client.db();
   const users = db.collection("users");
   const existingUser = await users.findOne<{ passwordHash?: string }>({ email: normalizedEmail });
-  const passwordHash = await hashPassword(password);
-
-  if (existingUser?.passwordHash) {
-    return NextResponse.json({ message: "An account with this email already exists." }, { status: 409 });
-  }
 
   if (existingUser) {
-    await users.updateOne(
-      { email: normalizedEmail },
+    return NextResponse.json(
       {
-        $set: {
-          name: normalizedName,
-          passwordHash,
-          updatedAt: new Date(),
-        },
-      }
+        message: existingUser.passwordHash
+          ? "An account with this email already exists."
+          : "This email is already linked to Google sign-in. Please use Google login.",
+      },
+      { status: 409 }
     );
-  } else {
-    await users.insertOne({
-      name: normalizedName,
-      email: normalizedEmail,
-      passwordHash,
-      image: null,
-      emailVerified: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
   }
+
+  const passwordHash = await hashPassword(password);
+  await users.insertOne({
+    name: normalizedName,
+    email: normalizedEmail,
+    passwordHash,
+    image: null,
+    emailVerified: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
 
   return NextResponse.json({ message: "Account created successfully." });
 }

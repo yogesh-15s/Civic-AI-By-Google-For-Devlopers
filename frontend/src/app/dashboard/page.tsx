@@ -138,11 +138,11 @@ export default function DashboardPage() {
                 <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '4px' }}>
                   Your Election Roadmap
                 </h2>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
+                <p id="roadmap-status" style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
                   {completedSteps} of {roadmapSteps.length} steps completed
                 </p>
               </div>
-              <span style={{
+              <span aria-hidden="true" style={{
                 fontFamily: 'Outfit, sans-serif',
                 fontSize: '28px', fontWeight: 800,
                 background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)',
@@ -153,7 +153,15 @@ export default function DashboardPage() {
             </div>
 
             {/* Progress bar */}
-            <div className="progress-bar" style={{ marginBottom: '24px' }}>
+            <div 
+              className="progress-bar" 
+              style={{ marginBottom: '24px' }}
+              role="progressbar"
+              aria-valuenow={progress}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-labelledby="roadmap-status"
+            >
               <div className="progress-fill" style={{ width: `${progress}%` }} />
             </div>
 

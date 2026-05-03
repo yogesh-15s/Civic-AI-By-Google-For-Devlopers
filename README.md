@@ -91,23 +91,24 @@ civicai-app/
 
 ### Frontend: `frontend/.env.local`
 
-Use `frontend/.env.example` as a reference:
-
 ```env
 NEXTAUTH_SECRET=your_nextauth_secret_here
 NEXTAUTH_URL=http://localhost:3000
 NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
 GOOGLE_CLIENT_ID=your_google_client_id_here
 GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+MONGODB_URI=your_mongodb_uri_here
+INTERNAL_API_KEY=your_shared_secret_with_backend
 ```
 
 ### Backend: `backend/.env`
 
-Use `backend/.env.example` as a reference:
-
 ```env
 PORT=5000
 GEMINI_API_KEY=your_gemini_api_key_here
+MONGO_URI=your_mongodb_uri_here
+FRONTEND_URL=http://localhost:3000
+INTERNAL_API_KEY=your_shared_secret_with_frontend
 ```
 
 ## Installation

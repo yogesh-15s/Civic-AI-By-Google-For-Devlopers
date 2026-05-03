@@ -197,7 +197,7 @@ export default function AuthPage() {
                 {/* Name (signup only) */}
                 {mode === 'signup' && (
                   <div>
-                    <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
+                    <label htmlFor="auth-name" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
                       Full Name
                     </label>
                     <div style={{ position: 'relative' }}>
@@ -218,7 +218,7 @@ export default function AuthPage() {
 
                 {/* Email */}
                 <div>
-                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
+                  <label htmlFor="auth-email" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
                     Email Address
                   </label>
                   <div style={{ position: 'relative' }}>
@@ -238,7 +238,7 @@ export default function AuthPage() {
 
                 {/* Password */}
                 <div>
-                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
+                  <label htmlFor="auth-password" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
                     Password
                   </label>
                   <div style={{ position: 'relative' }}>

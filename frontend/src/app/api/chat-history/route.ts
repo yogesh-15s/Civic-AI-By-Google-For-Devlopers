@@ -3,17 +3,20 @@ import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { authOptions } from "@/lib/auth";
 
-type ChatMessage = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  time: string;
-};
+import { z } from "zod";
 
-type ChatBody = {
-  messages?: ChatMessage[];
-  language?: "en" | "hi";
-};
+const ChatMessageSchema = z.object({
+  id: z.string(),
+  role: z.enum(["user", "assistant"]),
+  content: z.string().min(1).max(2000),
+  time: z.string(),
+});
+
+const ChatBodySchema = z.object({
+  messages: z.array(ChatMessageSchema).max(100),
+  language: z.enum(["en", "hi"]).optional(),
+});
+
 
 function getIdentity(session: Session | null) {
   const userId = session?.user?.id;
@@ -52,11 +55,14 @@ export async function PUT(request: Request) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const { messages, language } = (await request.json()) as ChatBody;
+  const body = await request.json();
+  const validation = ChatBodySchema.safeParse(body);
 
-  if (!Array.isArray(messages)) {
-    return NextResponse.json({ message: "Messages must be an array." }, { status: 400 });
+  if (!validation.success) {
+    return NextResponse.json({ message: "Invalid request body", errors: validation.error.errors }, { status: 400 });
   }
+
+  const { messages, language } = validation.data;
 
   const client = await clientPromise;
   const db = client.db();
