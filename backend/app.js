@@ -146,7 +146,7 @@ Always end with an encouraging note about civic participation.`;
 
       // Google Gemini — using gemini-1.5-flash with safety settings
       const model = genAI.getGenerativeModel({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-1.5-flash-latest',
         systemInstruction: `${SYSTEM_PROMPT}\n\n${langInstruction}`,
         safetySettings,
         generationConfig: {
