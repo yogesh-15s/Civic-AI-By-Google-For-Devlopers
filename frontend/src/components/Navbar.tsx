@@ -70,9 +70,9 @@ export default function Navbar() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'all 0.2s ease'
               }}
-              title="Toggle theme"
+              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             >
-              {isDark ? <Sun size={16} color="#f59e0b" /> : <Moon size={16} color="#3b82f6" />}
+              {isDark ? <Sun size={16} color="#f59e0b" aria-hidden="true" /> : <Moon size={16} color="#3b82f6" aria-hidden="true" />}
             </button>
 
             <button
@@ -87,10 +87,10 @@ export default function Navbar() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'all 0.2s ease'
               }}
-              title="Logout"
+              aria-label="Logout"
               className="hidden-mobile"
             >
-              <LogOut size={16} />
+              <LogOut size={16} aria-hidden="true" />
             </button>
 
             <button
@@ -105,20 +105,26 @@ export default function Navbar() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center'
               }}
               className="show-mobile"
+              aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={menuOpen}
+              aria-controls="mobile-nav"
             >
-              {menuOpen ? <X size={16} /> : <Menu size={16} />}
+              {menuOpen ? <X size={16} aria-hidden="true" /> : <Menu size={16} aria-hidden="true" />}
             </button>
           </div>
         </div>
 
         {menuOpen && (
-          <div style={{
-            padding: '16px 0',
-            borderTop: '1px solid var(--border-color)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px'
-          }}>
+          <div
+            id="mobile-nav"
+            style={{
+              padding: '16px 0',
+              borderTop: '1px solid var(--border-color)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px'
+            }}
+          >
             {navItems.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}

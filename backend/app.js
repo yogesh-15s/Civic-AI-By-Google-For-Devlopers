@@ -3,34 +3,74 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { z } = require('zod');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require('@google/generative-ai');
 
 function createApp() {
   const app = express();
 
   // Security headers
-  app.use(helmet());
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:", "https:"],
+        connectSrc: ["'self'", "https://generativelanguage.googleapis.com"],
+      },
+    },
+  }));
 
-  // CORS configuration
-  const corsOptions = {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    optionsSuccessStatus: 200
-  };
-  app.use(cors(corsOptions));
+  // CORS configuration — allow both www and non-www variants
+  const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    'http://localhost:3000',
+  ].filter(Boolean);
+
+  app.use(cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.some(o => origin.startsWith(o.replace(/\/$/, '')))) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    optionsSuccessStatus: 200,
+  }));
 
   // Body parsing with size limits
   app.use(express.json({ limit: '10kb' }));
 
-  // Rate limiting
-  const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
-    message: { message: "Too many requests from this IP, please try again after 15 minutes" }
+  // Rate limiting — stricter on chat endpoint
+  const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: "Too many requests. Please try again after 15 minutes." }
   });
-  app.use('/api/', limiter);
 
-  // Gemini Setup
+  const chatLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: "Too many chat messages. Please slow down." }
+  });
+
+  app.use('/api/', globalLimiter);
+  app.use('/api/chat', chatLimiter);
+
+  // Google Gemini Setup — using latest recommended model
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+
+  // Google Gemini Safety Settings
+  const safetySettings = [
+    { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+    { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+    { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+    { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+  ];
 
   const SYSTEM_PROMPT = `You are CivicAI, a smart, friendly, and politically neutral election assistant for Indian citizens.
 
@@ -57,16 +97,16 @@ Key resources you know:
 
 Always end with an encouraging note about civic participation.`;
 
-  // Schema Validation
+  // Schema Validation with Zod
   const ChatSchema = z.object({
     messages: z.array(z.object({
       role: z.enum(['user', 'assistant']),
-      content: z.string().min(1).max(2000)
+      content: z.string().min(1).max(2000).trim()
     })).min(1).max(20),
-    language: z.enum(['en', 'hi']).optional()
+    language: z.enum(['en', 'hi']).optional().default('en')
   });
 
-  // Auth Middleware (Simple API Key for now)
+  // Internal API Key Auth Middleware
   const authMiddleware = (req, res, next) => {
     const apiKey = req.headers['x-api-key'];
     if (process.env.INTERNAL_API_KEY && apiKey !== process.env.INTERNAL_API_KEY) {
@@ -75,22 +115,27 @@ Always end with an encouraging note about civic participation.`;
     next();
   };
 
+  // Health check
   app.get('/', (req, res) => {
-    res.send('CivicAI Backend is running safely!');
+    res.json({ status: 'ok', service: 'CivicAI Backend', poweredBy: 'Google Gemini' });
   });
 
+  // Chat endpoint — uses Google Gemini with safety settings
   app.post('/api/chat', authMiddleware, async (req, res) => {
     try {
       if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'your_gemini_api_key_here') {
-        return res.json({
-          message: "⚠️ Gemini API key not configured on server. Please add GEMINI_API_KEY to your backend .env file.\n\nDemo mode: I'm CivicAI! To vote in India, register at voter.eci.gov.in!"
+        return res.status(503).json({
+          message: "AI service is not configured. Please contact support."
         });
       }
 
       // Validate request body
       const validation = ChatSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ message: "Invalid request payload", errors: validation.error.errors });
+        return res.status(400).json({
+          message: "Invalid request payload",
+          errors: validation.error.errors.map(e => ({ field: e.path.join('.'), issue: e.message }))
+        });
       }
 
       const { messages, language } = validation.data;
@@ -99,9 +144,17 @@ Always end with an encouraging note about civic participation.`;
         ? 'Please respond in Hindi (Devanagari script) as the user prefers Hindi.'
         : 'Please respond in English.';
 
+      // Google Gemini — using gemini-1.5-flash with safety settings
       const model = genAI.getGenerativeModel({
         model: 'gemini-1.5-flash',
-        systemInstruction: `${SYSTEM_PROMPT}\n\n${langInstruction}`
+        systemInstruction: `${SYSTEM_PROMPT}\n\n${langInstruction}`,
+        safetySettings,
+        generationConfig: {
+          maxOutputTokens: 600,
+          temperature: 0.7,
+          topP: 0.95,
+          topK: 40,
+        }
       });
 
       const formattedHistory = messages.map((msg) => ({
@@ -110,23 +163,26 @@ Always end with an encouraging note about civic participation.`;
       }));
 
       const lastMessage = formattedHistory.pop();
-      
-      const chat = model.startChat({
-        history: formattedHistory,
-        generationConfig: {
-          maxOutputTokens: 600,
-          temperature: 0.7,
-        }
-      });
 
+      if (!lastMessage) {
+        return res.status(400).json({ message: "No message to process." });
+      }
+
+      const chat = model.startChat({ history: formattedHistory });
       const result = await chat.sendMessage(lastMessage.parts[0].text);
       const text = result.response.text();
 
-      return res.json({ message: text });
+      return res.json({ message: text, model: 'gemini-1.5-flash', poweredBy: 'Google AI' });
 
     } catch (error) {
-      console.error('Backend Gemini API error:', error);
-      res.status(500).json({ message: "Internal server error." });
+      // Don't leak internal error details
+      console.error('Gemini API error:', error?.message || error);
+
+      if (error?.message?.includes('SAFETY')) {
+        return res.status(422).json({ message: "I cannot respond to that request. Please ask about election-related topics." });
+      }
+
+      res.status(500).json({ message: "The AI service is temporarily unavailable. Please try again." });
     }
   });
 

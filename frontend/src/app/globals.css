@@ -80,6 +80,18 @@ html {
   border-width: 0;
 }
 
+/* Accessible focus styles — visible for keyboard users, hidden for mouse users */
+*:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Remove default focus ring for mouse users */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background-color: var(--bg-primary);
